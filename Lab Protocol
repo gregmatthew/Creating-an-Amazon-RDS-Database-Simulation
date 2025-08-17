@@ -1,0 +1,221 @@
+# AWS RDS Database Simulation Lab
+
+## Overview
+This lab demonstrates the creation and management of an Amazon RDS MySQL database instance, including connecting a web application to the database and performing basic administrative operations.
+
+## Architecture
+The final architecture includes:
+- Amazon EC2 instance running a web application
+- Amazon RDS MySQL database instance
+- VPC with proper security groups for database connectivity
+
+## Learning Objectives
+- Launch a MySQL database using Amazon RDS
+- Configure a web application to connect to Amazon RDS
+- Perform database operations (stop, start, reboot)
+- Monitor database performance using CloudWatch metrics
+
+## Prerequisites
+- Completion of "Getting Started with Databases" course
+- Basic understanding of AWS services (EC2, RDS, VPC)
+
+## Lab Tasks
+
+### Task 1: Create Amazon RDS Database
+
+#### Engine Configuration
+1. **Navigate to RDS Service**
+   - Search for "RDS" in AWS Management Console
+   - Select RDS from search results
+   - Click "Create Database"
+
+2. **Database Engine Setup**
+   - **Creation Method**: Standard create
+   - **Engine Type**: MySQL
+   - **Engine Version**: MySQL 8.0.32
+   - **Template**: Dev/Test
+
+3. **Availability and Durability**
+   - **Deployment**: Single DB instance (no Multi-AZ for this lab)
+
+4. **Database Settings**
+   ```
+   DB Instance Identifier: inventory-db
+   Master Username: admin
+   Credentials Management: Self managed
+   Master Password: sim-password!
+   ```
+
+5. **Instance Configuration**
+   - **Instance Class**: Burstable classes (db.t3.micro)
+
+6. **Storage Configuration**
+   ```
+   Storage Type: General Purpose SSD (gp2)
+   Allocated Storage: 20 GB
+   Storage Autoscaling: Disabled
+   ```
+
+7. **Connectivity Settings**
+   - **Compute Resource**: Don't connect to EC2 (manual setup later)
+   - **Network Type**: IPv4
+   - **VPC**: Lab VPC
+   - **DB Subnet Group**: rds-lab-db-subnet-group
+   - **Public Access**: No
+   - **VPC Security Group**: DB-SG (remove default)
+   - **Availability Zone**: No preference
+
+8. **Database Authentication**
+   - **Method**: Password authentication
+
+9. **Additional Configuration**
+   ```
+   Initial Database Name: inventory
+   Enhanced Monitoring: Disabled
+   Encryption: Disabled
+   ```
+
+10. **Create Database**
+    - Click "Create database"
+    - Wait for status to change from "Backing-up" to "Available"
+
+### Task 2: Configure Web Application
+
+#### Connect to Application
+1. **Access EC2 Instance**
+   - Navigate to EC2 → Instances
+   - Select "App Server" instance
+   - Copy Public IPv4 address
+   - Open new browser tab and navigate to the IP address
+
+2. **Configure Database Connection**
+   - Click "Settings" in the web application
+   - Retrieve database endpoint from RDS console:
+     - RDS → Databases → inventory-db
+     - Copy endpoint from "Connectivity & security" section
+
+3. **Application Settings**
+   ```
+   Endpoint: [copied RDS endpoint]
+   Database: inventory
+   Username: admin
+   Password: sim-password!
+   ```
+   - Click "Save" to store in AWS Secrets Manager
+
+#### Test Database Operations
+1. **Add New Inventory Record**
+   ```
+   Store: Atlanta
+   Item: Amazon Alexa
+   Quantity: 7
+   ```
+
+2. **Edit Existing Record**
+   - Edit Puerto Rico entry
+   - Change quantity from 12 to 5
+   - Submit changes
+
+### Task 3: Monitor Database Instance
+
+#### CloudWatch Metrics Review
+1. **Access Monitoring Tab**
+   - Navigate to RDS → Databases → inventory-db
+   - Click "Monitoring" tab
+
+2. **Review Available Metrics**
+   - CPU Utilization
+   - Database Connections
+   - Read/Write IOPS
+   - Network Throughput
+   - Storage metrics
+
+### Task 4: Database Administrative Operations
+
+#### Database Management
+1. **Access Database Actions**
+   - Navigate to RDS → Databases → inventory-db
+   - Click "Actions" menu
+
+2. **Available Operations**
+   - Stop temporarily (auto-restart after 7 days)
+   - Reboot
+   - Take snapshot
+   - Modify instance
+   - Delete (with safeguards)
+
+3. **Temporary Stop**
+   - Select "Stop temporarily"
+   - Acknowledge the action
+   - Confirm stop operation
+
+## Key Learning Points
+
+### AWS RDS Benefits
+- **Managed Service**: AWS handles patching, backups, and maintenance
+- **High Availability**: Multi-AZ deployments for production workloads
+- **Scalability**: Easy vertical and horizontal scaling options
+- **Security**: VPC isolation, security groups, and encryption options
+- **Monitoring**: Built-in CloudWatch metrics and Enhanced Monitoring
+
+### Best Practices Demonstrated
+- **Security**: Proper VPC and security group configuration
+- **Credentials Management**: Using AWS Secrets Manager for database credentials
+- **Resource Tagging**: Organized resource identification
+- **Cost Management**: Temporary stopping to reduce costs
+
+### Real-World Applications
+- **Web Applications**: Database backend for dynamic websites
+- **Business Applications**: Inventory management systems
+- **Data Analytics**: Structured data storage and retrieval
+- **Microservices**: Database layer for distributed applications
+
+## Technical Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐
+│   Web Browser   │────│   Amazon EC2     │
+│                 │    │   App Server     │
+└─────────────────┘    └────────┬─────────┘
+                                │
+                                │ VPC
+                                │
+                       ┌────────▼─────────┐
+                       │   Amazon RDS     │
+                       │   MySQL 8.0.32   │
+                       │   (inventory-db)  │
+                       └──────────────────┘
+```
+
+## Cost Considerations
+- **RDS Instance**: db.t3.micro eligible for Free Tier
+- **Storage**: 20 GB General Purpose SSD
+- **Data Transfer**: Minimal for this lab
+- **Backup Storage**: Automated backups within Free Tier limits
+
+## Troubleshooting Notes
+- **Connection Issues**: Verify security group rules allow traffic on port 3306
+- **Application Errors**: Check database endpoint and credentials
+- **Performance**: Monitor CloudWatch metrics for bottlenecks
+- **Access**: Ensure proper IAM permissions for RDS operations
+
+## Cleanup Instructions
+To avoid ongoing charges:
+1. Delete the RDS instance (disable deletion protection if enabled)
+2. Terminate the EC2 instance
+3. Delete associated snapshots if not needed
+4. Review and delete any remaining resources
+
+## Skills Demonstrated
+- AWS RDS database provisioning
+- VPC and security group configuration
+- Database connectivity and application integration
+- AWS Secrets Manager utilization
+- CloudWatch monitoring and metrics analysis
+- Database administrative operations
+
+---
+
+**Lab Completion Status**: ✅ Successfully completed all tasks
+**Duration**: Approximately 45-60 minutes
+**AWS Services Used**: RDS, EC2, VPC, Secrets Manager, CloudWatch
